@@ -4,11 +4,13 @@ import (
 	"embed"
 	"fmt"
 	"imgServer/db"
+	"imgServer/utils"
 	"io/fs"
 	"log"
+	"net"
 	"net/http"
-	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,11 +20,13 @@ var static embed.FS
 
 // Serve 开始把 db 所在的目录作为服务
 func Serve() {
-	if _, err := os.Stat("imgdata.db"); os.IsNotExist(err) {
-		log.Fatalln("索引不存在")
+	if err := utils.Index(); err != nil {
+		log.Fatalln("索引检查失败：\n", err)
 	}
+	gin.SetMode(gin.ReleaseMode)
+	addrs, _ := net.InterfaceAddrs()
+
 	ro := gin.Default()
-	// ro.Use(cors.Default())
 
 	app, err := fs.Sub(static, "statics")
 	if err != nil {
@@ -31,6 +35,10 @@ func Serve() {
 
 	ro.Static("/pics", ".")
 	ro.StaticFS("/app", http.FS(app))
+
+	ro.NoRoute(func(ctx *gin.Context) {
+		ctx.Redirect(http.StatusPermanentRedirect, "/app/index.html")
+	})
 
 	api := ro.Group("/api")
 	{
@@ -60,9 +68,20 @@ func Serve() {
 				log.Println(err)
 				return
 			}
-			ctx.JSON(http.StatusOK, images)
+			ctx.JSON(http.StatusOK, gin.H{
+				"max":  len(images),
+				"data": images,
+			})
 		})
 	}
 
+	for _, v := range addrs {
+		if ip, ok := v.(*net.IPNet); ok {
+			ipt4 := ip.IP.To4()
+			if ipt4 != nil && strings.Contains(ipt4.String(), "192") {
+				log.Printf("访问 App：%s:9080/app", ipt4.String())
+			}
+		}
+	}
 	ro.Run(":9080")
 }

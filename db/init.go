@@ -33,7 +33,7 @@ func InitDB() {
 	DB = db
 	db.MustExec(`CREATE TABLE IF NOT EXISTS images(
 		id integer primary key,
-		name text,
+		name text COLLATE NOCASE,
 		path text,
 		author text
 	);`)
@@ -41,16 +41,26 @@ func InitDB() {
 	log.Println("数据库已初始化")
 }
 
+func IsEmpty() bool {
+	var indexes []ImageIndex
+	DB.Select(&indexes, `SELECT * FROM images`)
+	return len(indexes) == 0
+}
+
 // Add 插入图片索引
 func (image *ImageIndex) Add(tx *sqlx.Tx) {
-	tx.MustExec(`INSERT INTO images VALUES(?, ?, ?, ?)`, image.ID, image.Name, image.Path, image.Author)
+	_, err := tx.Exec(`INSERT OR IGNORE INTO images VALUES(?, ?, ?, ?)`, image.ID, image.Name, image.Path, image.Author)
+	if err != nil {
+		log.Printf("跳过 %+v", *image)
+		return
+	}
 }
 
 // Submissions 根据作者，起始点，页面大小获取一系列作品
 func Submissions(author, keyword string, page, size int) ([]ImageIndex, error) {
 	page--
 	images := []ImageIndex{}
-	if err := DB.Select(&images, `SELECT * FROM images WHERE author=? AND name LIKE ? LIMIT ? OFFSET ?`, author, fmt.Sprintf("%%%s%%", keyword), size, page*size); err != nil {
+	if err := DB.Select(&images, `SELECT * FROM images WHERE author=? AND name LIKE ? ORDER BY id LIMIT ? OFFSET ?`, author, fmt.Sprintf("%%%s%%", keyword), size, page*size); err != nil {
 		return images, err
 	}
 	return images, nil
