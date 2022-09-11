@@ -1,7 +1,6 @@
 import {useState} from "react";
 import {Alert, Container, Row, Spinner} from "react-bootstrap";
-import {useParams} from "react-router";
-import {useSearchParams} from "react-router-dom";
+import {useSearchParams, useParams} from "react-router-dom";
 import {FormFields, useImageSearch} from "../services/swr";
 import ImageCard from "./Image";
 import Pager from "./Pager";

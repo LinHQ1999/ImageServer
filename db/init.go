@@ -14,6 +14,7 @@ var DB *sqlx.DB
 type ImageIndex struct {
 	ID     int64  `db:"id" json:"id"`
 	Name   string `db:"name" json:"name"`
+	From   string `db:"from" json:"from"`
 	Path   string `db:"path" json:"path"`
 	Author string `db:"author" json:"author"`
 }
@@ -22,6 +23,8 @@ type ImageIndex struct {
 type Author struct {
 	Author      string `db:"author" json:"author"`
 	Submissions int    `db:"submissions" json:"submissions"`
+	LatestImg   string `db:"latest_img" json:"latest_img"`
+	From        string `db:"from"`
 }
 
 // InitDB 由 start 数调用进行初始化
@@ -34,6 +37,7 @@ func InitDB() {
 	db.MustExec(`CREATE TABLE IF NOT EXISTS images(
 		id integer primary key,
 		name text COLLATE NOCASE,
+		'from' text,
 		path text,
 		author text
 	);`)
@@ -49,7 +53,7 @@ func IsEmpty() bool {
 
 // Add 插入图片索引
 func (image *ImageIndex) Add(tx *sqlx.Tx) {
-	_, err := tx.Exec(`INSERT OR IGNORE INTO images VALUES(?, ?, ?, ?)`, image.ID, image.Name, image.Path, image.Author)
+	_, err := tx.Exec(`INSERT OR REPLACE INTO images VALUES($1, $2, $3, $4, $5)`, image.ID, image.Name, image.From, image.Path, image.Author)
 	if err != nil {
 		log.Printf("跳过 %+v", *image)
 		return
@@ -74,7 +78,7 @@ func Delete(author string) {
 // Authors 获取所有的作者
 func Authors() ([]Author, error) {
 	authors := []Author{}
-	if err := DB.Select(&authors, `SELECT author, count(author) AS submissions FROM images GROUP BY author`); err != nil {
+	if err := DB.Select(&authors, `SELECT author, count(author) AS submissions, "from", path AS latest_img FROM (SELECT * FROM images ORDER BY id DESC) GROUP BY author`); err != nil {
 		return authors, err
 	}
 	return authors, nil

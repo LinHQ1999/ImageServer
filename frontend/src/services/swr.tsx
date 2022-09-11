@@ -6,6 +6,7 @@ const fetcher = (url: string) => axios.get(url).then(res => res.data)
 export interface Author {
     author: string
     submissions: number
+    latest_img: string
 }
 
 

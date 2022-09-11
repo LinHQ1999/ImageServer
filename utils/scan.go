@@ -13,6 +13,7 @@ import (
 
 // Index 从当前目录中向下索引所有图片
 func Index() error {
+	log.Println("扫描生成的数据库无法用来增量更新！")
 	if db.IsEmpty() {
 		st := time.Now()
 		tx := db.DB.MustBegin()
@@ -29,6 +30,7 @@ func Index() error {
 				img := db.ImageIndex{
 					ID:     int64(id),
 					Name:   name,
+					From:   "__scan__",
 					Path:   path,
 					Author: filepath.Base(filepath.Dir(path)),
 				}

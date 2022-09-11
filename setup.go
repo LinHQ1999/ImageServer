@@ -79,7 +79,7 @@ func Serve() {
 		if ip, ok := v.(*net.IPNet); ok {
 			ipt4 := ip.IP.To4()
 			if ipt4 != nil && strings.Contains(ipt4.String(), "192") {
-				log.Printf("访问 App：%s:9080/app", ipt4.String())
+				log.Printf("访问 App：http://%s:9080/app", ipt4.String())
 			}
 		}
 	}

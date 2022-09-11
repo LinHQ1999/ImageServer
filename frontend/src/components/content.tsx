@@ -1,6 +1,6 @@
 import {useState} from "react";
-import {Badge, ListGroup, Stack, Spinner, Form} from "react-bootstrap";
-import {useNavigate} from "react-router";
+import {Badge, Card, Col, Container, Form, Row, Spinner, Stack} from "react-bootstrap";
+import {useNavigate} from "react-router-dom";
 import {useAuthorList} from "../services/swr";
 
 export default function Content() {
@@ -21,30 +21,33 @@ export default function Content() {
                     <Spinner animation="border" variant="primary"></Spinner>
                 </p>
                 :
-                <ListGroup>
-                    {authors
-                        .filter(author => {
-                            if (key) {
-                                return author.author.toLowerCase().includes(key.toLowerCase())
-                            }
-                            return true
-                        })
-                        .map(author => (
-                            <ListGroup.Item
-                                className="d-flex justify-content-between"
-                                action
-                                key={author.author}
-                                onClick={() => nav(`${author.author}?total=${author.submissions}`)}
-                            >
-                                <span className="fw-bold">
-                                    {author.author}
-                                </span>
-                                <Badge>
-                                    {author.submissions}
-                                </Badge>
-                            </ListGroup.Item>
-                        ))}
-                </ListGroup>
+                <Container fluid>
+                    <Row
+                        xs="1" sm="2" md="3" xlg="4"
+                        className="g-1 justify-content-center"
+                    >
+                        {authors
+                            .filter(author => {
+                                if (key) {
+                                    return author.author.toLowerCase().includes(key.toLowerCase())
+                                }
+                                return true
+                            })
+                            .map(author => (
+                                <Col>
+                                    <Card>
+                                        <Card.Img variant="top" src={"/pics/" + author.latest_img}></Card.Img>
+                                        <Card.Body>
+                                            <Card.Title onClick={() => nav("/" + author.author + "?total=" + author.submissions)}>
+                                                {author.author}
+                                            </Card.Title>
+                                            <Card.Subtitle><Badge>Submissions: {author.submissions}</Badge></Card.Subtitle>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                            ))}
+                    </Row>
+                </Container>
             }
         </Stack>
     )

@@ -2,7 +2,7 @@ import {faChevronLeft, faChevronRight, faSearch} from "@fortawesome/free-solid-s
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome"
 import {FormEvent, useRef} from "react"
 import {Button, Col, Form, InputGroup, Row} from "react-bootstrap"
-import {useNavigate} from "react-router"
+import {useNavigate} from "react-router-dom"
 import {FormFields} from "../services/swr"
 
 interface PagerProps {
