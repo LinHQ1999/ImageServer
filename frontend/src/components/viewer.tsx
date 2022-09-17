@@ -1,16 +1,14 @@
-import {useState} from "react";
-import {Alert, Container, Row, Spinner} from "react-bootstrap";
-import {useSearchParams, useParams} from "react-router-dom";
-import {FormFields, useImageSearch} from "../services/swr";
+import { useState } from "react";
+import { Alert, Container, Row, Spinner } from "react-bootstrap";
+import { useSearchParams, useParams } from "react-router-dom";
+import { FormFields, useImageSearch } from "../services/swr";
 import ImageCard from "./Image";
 import Pager from "./Pager";
 
 export default function Viewer() {
-    const [form, setForm] = useState<FormFields>({keyword: "", pg: 1, sz: 48})
-    const {author} = useParams()
-    const [searchParams] = useSearchParams()
-    const {imageIndexes} = useImageSearch(author ?? "", form)
-    const total = parseInt(searchParams.get("total") ?? "0")
+    const [form, setForm] = useState<FormFields>({ keyword: "", pg: 1, sz: 48 })
+    const { author } = useParams()
+    const { imageIndexes, total } = useImageSearch(author ?? "", form)
 
     return (
         <Container fluid>
@@ -21,7 +19,10 @@ export default function Viewer() {
                     backdropFilter: "blur(2px)"
                 }}
             >
-                <Pager total={total} formField={form} setForm={setForm}></Pager>
+                <Pager total={total}
+                    formFields={form}
+                    setForm={setForm}
+                ></Pager>
             </Row>
             <Row
                 xs="1" sm="2" md="3" xlg="4"

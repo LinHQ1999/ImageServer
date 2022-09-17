@@ -27,22 +27,38 @@ type Author struct {
 	From        string `db:"from"`
 }
 
+// Submission 结果汇总
+type Submission struct {
+	Indexes []ImageIndex
+	Total   int
+}
+
 // InitDB 由 start 数调用进行初始化
 func InitDB() {
-	db, err := sqlx.Connect("sqlite3", "file:imgdata.db")
+	dsn := "file:imgdata.db?_vacuum=1"
+	db, err := sqlx.Connect("sqlite3", dsn)
 	if err != nil {
 		log.Panicln(err)
 	}
 	DB = db
-	db.MustExec(`CREATE TABLE IF NOT EXISTS images(
+	tx := db.MustBegin()
+	// 建表
+	tx.MustExec(`CREATE TABLE IF NOT EXISTS images(
 		id integer primary key,
 		name text COLLATE NOCASE,
 		'from' text,
 		path text,
 		author text
 	);`)
-
-	log.Println("数据库已初始化")
+	// 建索引
+	res := tx.MustExec(`CREATE INDEX IF NOT EXISTS images_search_IDX ON images (author,name)`)
+	tx.Commit()
+	count, err := res.RowsAffected()
+	if count != 0 && err != nil {
+		log.Println("数据库表初始化成功")
+	} else {
+		log.Println("数据库已成功连接")
+	}
 }
 
 func IsEmpty() bool {
@@ -61,18 +77,29 @@ func (image *ImageIndex) Add(tx *sqlx.Tx) {
 }
 
 // Submissions 根据作者，起始点，页面大小获取一系列作品
-func Submissions(author, keyword string, page, size int) ([]ImageIndex, error) {
+func Submissions(author, keyword string, page, size int) (*Submission, error) {
 	page--
 	images := []ImageIndex{}
+	total := 0
+	res := new(Submission)
+
 	if err := DB.Select(&images, `SELECT * FROM images WHERE author=? AND name LIKE ? ORDER BY id LIMIT ? OFFSET ?`, author, fmt.Sprintf("%%%s%%", keyword), size, page*size); err != nil {
-		return images, err
+		return res, err
 	}
-	return images, nil
+	if err := DB.Get(&total, `SELECT count(*) as total FROM images WHERE author=$1 AND name LIKE $2`, author, fmt.Sprintf("%%%s%%", keyword)); err != nil {
+		return res, err
+	}
+
+	res.Indexes = images
+	res.Total = total
+	return res, nil
 }
 
 // Delete 封装一层基本操作
-func Delete(author string) {
-	DB.MustExec(`DELETE FROM images WHERE author=?`, author)
+func Delete(author string) int64 {
+	rs := DB.MustExec(`DELETE FROM images WHERE author=?`, author)
+	count, _ := rs.RowsAffected()
+	return count
 }
 
 // Authors 获取所有的作者

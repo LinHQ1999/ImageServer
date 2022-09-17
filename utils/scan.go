@@ -13,8 +13,8 @@ import (
 
 // Index 从当前目录中向下索引所有图片
 func Index() error {
-	log.Println("扫描生成的数据库无法用来增量更新！")
 	if db.IsEmpty() {
+		log.Println("扫描生成的数据库无法用来增量更新！但可以通过正常爬取第一页来触发增量更新！")
 		st := time.Now()
 		tx := db.DB.MustBegin()
 		err := filepath.WalkDir(".", func(path string, d fs.DirEntry, err error) error {

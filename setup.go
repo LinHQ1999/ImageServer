@@ -64,13 +64,13 @@ func Serve() {
 			}
 			images, err := db.Submissions(author, keyword, page, size)
 			if err != nil {
-				ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"msg": "No such author"})
+				ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"msg": "No such author!\n" + err.Error()})
 				log.Println(err)
 				return
 			}
 			ctx.JSON(http.StatusOK, gin.H{
-				"max":  len(images),
-				"data": images,
+				"max":  images.Total,
+				"data": images.Indexes,
 			})
 		})
 	}

@@ -1,7 +1,7 @@
 import axios from "axios";
 import useSWR from "swr";
 
-const fetcher = (url: string) => axios.get(url).then(res => res.data)
+const getter = (url: string) => axios.get(url).then(res => res.data)
 
 export interface Author {
     author: string
@@ -30,7 +30,7 @@ export interface ImageSearchResp {
 }
 
 export function useAuthorList() {
-    const {data, error} = useSWR<Author[], any>("/api/authors", fetcher)
+    const {data, error} = useSWR<Author[], any>("/api/authors", getter)
 
     return {
         authors: data!,
@@ -39,7 +39,7 @@ export function useAuthorList() {
 }
 
 export function useImageSearch(author: string, form: FormFields) {
-    const {data, error} = useSWR<ImageSearchResp, any>(() => `/api/${author}/submissions?query=${form.keyword}&sz=${form.sz}&pg=${form.pg}`, fetcher)
+    const {data, error} = useSWR<ImageSearchResp, any>(() => `/api/${author}/submissions?query=${form.keyword}&sz=${form.sz}&pg=${form.pg}`, getter)
 
     return {
         total: data?.max,

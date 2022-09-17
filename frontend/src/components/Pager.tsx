@@ -1,27 +1,29 @@
-import {faChevronLeft, faChevronRight, faSearch} from "@fortawesome/free-solid-svg-icons"
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome"
-import {FormEvent, useRef} from "react"
-import {Button, Col, Form, InputGroup, Row} from "react-bootstrap"
-import {useNavigate} from "react-router-dom"
-import {FormFields} from "../services/swr"
+import { faChevronLeft, faChevronRight, faSearch } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FormEvent, useRef } from "react"
+import { Button, Col, Form, InputGroup, Row } from "react-bootstrap"
+import { useNavigate } from "react-router-dom"
+import { FormFields } from "../services/swr"
 
 interface PagerProps {
-    formField: FormFields
-    total: number
+    formFields: FormFields
+    total: number | undefined
     setForm: React.Dispatch<React.SetStateAction<FormFields>>
-    children?: React.FC
 }
 
-export default function Pager({formField, total, setForm}: PagerProps) {
+export default function Pager({ formFields: formField, total, setForm }: PagerProps) {
     const searchRef = useRef<HTMLInputElement>(null)
     const pageRef = useRef<HTMLInputElement>(null)
     const sizeRef = useRef<HTMLSelectElement>(null)
     const nav = useNavigate()
 
     // 计算应该有多少页
-    function caclPage(total: number, size: number) {
-        let div = total % size
-        return (div == 0) ? Math.floor(total / size) : Math.floor(total / size + 1)
+    function caclPage(total: number | undefined, size: number) {
+        if (total) {
+            let div = total % size
+            return (div == 0) ? Math.floor(total / size) : Math.floor(total / size + 1)
+        }
+        return 0
     }
 
     function handleNav(next = true) {
@@ -29,12 +31,12 @@ export default function Pager({formField, total, setForm}: PagerProps) {
         let maxPage = caclPage(total, formField.sz)
         if (next) {
             let newPage = (oldPage + 1 > maxPage) ? maxPage : oldPage + 1
-            setForm({...formField, pg: newPage})
+            setForm({ ...formField, pg: newPage })
             pageRef.current!.value = `${newPage}`
         } else {
             if (oldPage == 1) nav("/")
             else {
-                setForm({...formField, pg: oldPage - 1})
+                setForm({ ...formField, pg: oldPage - 1 })
                 pageRef.current!.value = `${oldPage - 1}`
             }
         }
