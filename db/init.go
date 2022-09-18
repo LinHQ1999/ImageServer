@@ -71,7 +71,7 @@ func IsEmpty() bool {
 func (image *ImageIndex) Add(tx *sqlx.Tx) {
 	_, err := tx.Exec(`INSERT OR REPLACE INTO images VALUES($1, $2, $3, $4, $5)`, image.ID, image.Name, image.From, image.Path, image.Author)
 	if err != nil {
-		log.Printf("跳过 %+v", *image)
+		log.Printf("因为 %s，跳过 %+v",err.Error(), *image)
 		return
 	}
 }
